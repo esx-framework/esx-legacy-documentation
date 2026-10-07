@@ -10,5 +10,6 @@ export default {
   esx_progressbar: "Progressbar",
   esx_skin: "Skin",
   esx_textui: "Text UI",
+  esx_whitelist: "Whitelist",
   skinchanger: "Skinchanger",
 };

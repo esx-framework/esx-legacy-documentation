@@ -1,0 +1,96 @@
+# esx_whitelist
+
+`esx_whitelist` is an ESX resource for controlling server access with identifiers, Discord guild roles, administrator groups, or a combination of these checks. It also provides an in-game administration panel and server commands.
+
+## Requirements
+
+- `es_extended`
+- `oxmysql`
+- `esx_lib`
+- A Discord bot in your guild when using Discord verification
+
+The resource creates its database tables during startup. You can also import `whitelist.sql` manually before starting the resource.
+
+## Installation
+
+Add the required convars and start the dependencies before `esx_whitelist` in `server.cfg`:
+
+```cfg
+# Required only when using Discord verification
+set discord:botToken "YOUR_DISCORD_BOT_TOKEN"
+
+# Optional webhook for event logging
+set whitelist:webhook "https://discord.com/api/webhooks/..."
+
+ensure oxmysql
+ensure esx_lib
+ensure es_extended
+ensure esx_whitelist
+```
+
+Configure the resource in `config/main.lua`. Set the Discord guild ID and allowed role IDs when using Discord mode. Keep bot tokens and webhook URLs in server-only convars; do not put them in shared config or client files. Do not use `setr` for these secrets. If a webhook URL is exposed, rotate it in Discord and update the convar.
+
+## Whitelist modes
+
+Set `Config.Whitelist.Mode` to one of the following:
+
+| Mode | Access check |
+| --- | --- |
+| `identifier` | Allows a player whose FiveM identifier is listed in `Config.Whitelist.AllowedIdentifiers` or the database. |
+| `discord` | Requires Discord guild membership and at least one role in `Config.Discord.AllowedRoles`. |
+| `both` | Uses both identifier and Discord checks. `CombinationMode = "or"` accepts either match; `"and"` requires both. |
+
+When `Config.Whitelist.Enabled` is `false`, whitelist verification is skipped. Otherwise, the resource checks emergency bypass identifiers first. If admin-only mode is enabled, it controls access instead of the regular whitelist modes. Checks fail closed when verification cannot safely establish access.
+
+## Administrator-only mode and bypass
+
+Set `Config.AdminOnly.Enabled = true` to limit connections to configured administrator groups and `Config.AdminOnly.AllowedIdentifiers`. Configure groups in `Config.AdminOnly.Groups`.
+
+`Config.Bypass.AllowedIdentifiers` is an emergency allow list checked before other connection rules. Keep it small and restrict access to the config.
+
+`Config.Admin.Groups` controls which ESX groups can use the whitelist panel and management commands. The default groups are `admin`, `superadmin`, and `owner`; change these to match your server's ESX groups.
+
+## Configuration reference
+
+The main settings are in `config/main.lua`:
+
+- `Config.Whitelist.Enabled`, `Mode`, `CombinationMode`, and `AllowedIdentifiers`
+- `Config.Discord.GuildId`, `AllowedRoles`, request timeout, and retry settings
+- `Config.Admin.Groups` and `Config.Admin.Cache`
+- `Config.AdminOnly.Enabled`, `Groups`, and `AllowedIdentifiers`
+- `Config.Bypass.AllowedIdentifiers`
+- `Config.Logging.Enabled` and webhook batching options
+- `Config.Performance` for Discord request concurrency, queue capacity, and verification timeout
+- `Config.Panel.Command` and `Config.Panel.Subcommands` for command names
+- `Config.Debug` for extra diagnostic output
+
+The panel can change the runtime-configurable settings and persists those overrides in the database. Server-only settings, including command names and secrets, remain in `config/main.lua` or `server.cfg`.
+
+## In-game panel and commands
+
+Admins can open the panel with `/whitelist` by default.
+| Default command | Description |
+| --- | --- |
+| `/whitelist` | Open the admin panel in game. |
+| `whitelist status` | Show whitelist mode, Discord readiness, and decision counters. |
+| `whitelist reload` | Reload runtime settings and verification caches. |
+| `whitelist cache` | Show Discord and admin cache statistics. |
+| `whitelist cache clear` | Clear the Discord verification cache. |
+| `whitelist test <serverId>` | Run the authorization pipeline for an online player. |
+| `whitelist add <identifier> [type]` | Add an identifier to `whitelist`, `admin_only`, or `bypass`. The type defaults to `whitelist`. |
+| `whitelist remove <identifier> [type]` | Remove an identifier from the selected list; the type defaults to `whitelist`. |
+
+## Discord setup
+
+1. Create a Discord application and bot, then invite it to the guild.
+2. Set `discord:botToken` in `server.cfg` as shown above.
+3. Set `Config.Discord.GuildId` and one or more IDs in `Config.Discord.AllowedRoles`.
+4. Select `discord` or `both` as the whitelist mode.
+
+The bot must be a member of the configured guild. The resource uses the bot token for server-side membership and role verification.
+
+## Logging and webhook security
+
+Set `Config.Logging.Enabled` to control event logging. To send logs to Discord, configure `whitelist:webhook` as a server-only convar.
+
+`Config.Debug = true` enables extra diagnostic output in the server console.
