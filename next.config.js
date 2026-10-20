@@ -4,6 +4,7 @@ import remarkMdxDisableExplicitJsx from "remark-mdx-disable-explicit-jsx";
 const withNextra = nextra({
   theme: "nextra-theme-docs",
   themeConfig: "./src/theme.config.tsx",
+  defaultShowCopyCode: true,
 
   mdxOptions: {
     remarkPlugins: [
