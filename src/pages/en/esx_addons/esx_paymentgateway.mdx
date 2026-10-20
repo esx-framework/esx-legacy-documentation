@@ -1,0 +1,146 @@
+import { Callout } from 'nextra/components';
+
+# esx_paymentgateway
+
+A cash or card payment dialog for other resources. The player sees what they pay for, their balances and what is left after paying, and picks how to pay. The resource that opened the dialog gets the ESX account back and does the sale on its own server with [`xPlayer.chargeAccount`](../esx_core/es_extended/server/xplayer#chargeaccount). The gateway itself never moves money.
+
+<br />
+
+[Github Link](https://github.com/esx-framework/ESX-Legacy-Addons/tree/main/%5Besx_addons%5D/esx_paymentgateway)
+
+## Requirements
+
+- [es_extended](../esx_core/es_extended) 1.16.4 or newer, for `xPlayer.chargeAccount`
+- esx_lib
+
+## Installation
+
+Start it after its dependencies:
+
+```cfg
+ensure esx_lib
+ensure es_extended
+ensure esx_paymentgateway
+```
+
+The page ships prebuilt in `web/dist`, so there is nothing to build on the server.
+
+## Opening the dialog
+
+`RequestPayment` is a client export. It waits until the player is done, so call it from a thread:
+
+```lua
+CreateThread(function()
+    local account, reason = exports.esx_paymentgateway:RequestPayment({
+        amount = 1250,                      -- whole number, at least 1
+        title = "Vehicle repair",           -- up to 120 bytes
+        description = "Los Santos Customs", -- optional, up to 120 bytes
+        currency = "$",                     -- optional, Config.Currency by default
+        methods = { "money", "bank" },      -- optional, every configured account by default
+    }, onPay)                               -- optional, see below
+end)
+```
+
+It returns the ESX account the player chose, `"money"` (shown as cash) or `"bank"` (shown as card), or `false` and a reason:
+
+| reason | |
+|---|---|
+| `"cancelled"` | The player closed the dialog, died, logged out, or your resource stopped |
+| `"unconfirmed"` | `onPay` failed or did not answer in time; it may have sold anyway |
+| `"busy"` | Another dialog is open on this client |
+| anything else | The request is broken, e.g. `"A title is required, at most 120 bytes."` |
+
+<Callout type="warning">
+    The amount in the request is only what the player sees, and it comes from the client. Your server charges its own price.
+</Callout>
+
+## Just the method or with a receipt
+
+Without `onPay` the dialog closes as soon as the player confirms a method, and you tell the player how the sale went yourself, usually with a notification.
+
+With `onPay` the dialog stays open and shows Processing while `onPay` asks your server to sell. `onPay` gets the account and returns how that went:
+
+| `onPay` returns | The dialog |
+|---|---|
+| `true`, or `{ ok = true }` | Shows the receipt |
+| `{ ok = true, reference = "LSC-0042" }` | Shows the receipt with your reference |
+| `false, "Sold out"`, or `{ ok = false, message = "Sold out" }` | Shows the reason; the player can pick again or cancel |
+| `{ ok = false, reason = "insufficient_funds" }` | The same, with the dialog's own text for that `chargeAccount` failure |
+| anything else, an error, or nothing within `Config.PayTimeout` | Closes and tells the player to check before paying again |
+
+Only return `false` when you know no money was taken. If you are not sure, let it error or time out, so the player cannot pay twice from the same dialog.
+
+## Charging on the server
+
+```lua
+-- client
+local account = exports.esx_paymentgateway:RequestPayment({
+    amount = 1250,
+    title = "Vehicle repair",
+}, function(account)
+    return xLib.callback.await("lsc:repair", false, account)
+end)
+
+-- server
+local REPAIR_PRICE = 1250
+local ACCOUNTS = { money = true, bank = true } -- the client may send any account
+
+xLib.callback.register("lsc:repair", function(source, account)
+    if not ACCOUNTS[account] then
+        return { ok = false, reason = "invalid_account" }
+    end
+
+    local player = ESX.Player(source)
+    if not player then return { ok = false } end
+
+    local charged, failure = player.chargeAccount(account, REPAIR_PRICE, "Vehicle repair")
+    if charged ~= true then
+        return { ok = false, reason = failure }
+    end
+    return { ok = true }
+end)
+```
+
+To give money back after a charge, for example when the item could not be handed over, use `addAccountMoney`. The `EXAMPLES.md` in the resource has a car wash and a car dealer with stock and refunds.
+
+## Configuration
+
+| Option | Default | |
+|---|---|---|
+| `Config.Accounts` | `cash = "money", card = "bank"` | ESX account behind each look, one account each |
+| `Config.Methods` | `{ "cash", "card" }` | Order of the looks, and the ones offered at all |
+| `Config.Currency` | `"$"` | Symbol when a request names none |
+| `Config.HoldAmount` | `50000` | From this amount the pay button has to be held; `0` turns it off |
+| `Config.PayTimeout` | `20` | Seconds the dialog waits for `onPay`, `3` to `300` |
+| `Config.CloseDelay` | `2600` | Milliseconds the receipt stays, up to `30000`; `0` waits for the player |
+| `Config.Volume` | `0.5` | Volume of the dialog's sounds, `0` to `1` |
+| `Config.TestCommand` | `false` | Registers `/testpayment <amount> [money\|bank\|both] [select]` for admins |
+
+Values that would break a payment are reported in the console at start and replaced by their defaults.
+
+## Theme and language
+
+The dialog follows the ESX UI convars. Set them with `setr` so clients can read them:
+
+```cfg
+setr esx:ui:primaryColor "#FB9B04"
+setr esx:ui:secondaryColor "#252525"
+setr esx:ui:backgroundColor "#161616"
+setr esx:ui:accentColor "#383838"
+setr esx:ui:logoUrl "https://example.com/logo.png"
+```
+
+Texts follow the `esx:locale` convar; English and German are included. For another language, copy `locales/en.lua` to `locales/<code>.lua` and translate the values.
+
+## Development
+
+The page is Svelte 5 with the ESX UI kit, built for FiveM's CEF 103.
+
+```bash
+cd web
+npm ci
+npm run dev        # http://localhost:3000, plays a demo payment
+npm test           # unit tests
+npm run test:cef   # builds and plays the dialog in Chromium 103
+npm run build      # type check, build to dist/, Chromium 103 feature check
+```
