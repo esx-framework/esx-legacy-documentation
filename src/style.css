@@ -130,13 +130,19 @@ html.light .nextra-nav-container {
     border-radius: 16px !important;
     margin: 0 0.5rem 0 0 !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     flex-shrink: 0 !important;
     position: sticky !important;
     top: 70px !important;
     height: calc(100vh - 80px) !important;
     max-height: calc(100vh - 80px) !important;
+  }
+
+  /* Only the link list scrolls, the footer stays at the bottom of the card */
+  .nextra-sidebar-container > .nextra-scrollbar {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
   
   /* Light theme sidebar - Better contrast */
@@ -181,18 +187,6 @@ html.light .nextra-nav-container {
     -webkit-mask-image: none !important;
   }
   
-  /* Ensure clean scrollbar */
-  .nextra-sidebar-container::-webkit-scrollbar {
-    width: 6px !important;
-  }
-  .nextra-sidebar-container::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-  .nextra-sidebar-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-radius: 3px !important;
-  }
-
 /* Clean reset - moins agressif */
 .nextra-sidebar-container * {
   box-sizing: border-box !important;
@@ -218,10 +212,11 @@ html.light .nextra-nav-container {
 @media (min-width: 769px) {
   .nextra-sidebar-footer {
     background: rgba(15, 15, 15, 0.9) !important;
-    margin: 1rem -1.5rem 0 -1.5rem !important;
-    padding: 1rem 1.5rem !important;
+    margin: 0 !important;
+    padding: 0.75rem 1rem !important;
     border-radius: 0 0 16px 16px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
   }
   
   /* Light theme sidebar footer */
@@ -620,27 +615,32 @@ div[class*="banner"] {
   isolation: isolate !important;
 }
 
-/* Force le scrolling propre de la sidebar */
-.nextra-sidebar-container {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
+/* Chrome ignores ::-webkit-scrollbar once scrollbar-width is set and draws arrow buttons instead.
+   Firefox has no ::-webkit-scrollbar and keeps Nextra's thin scrollbar. */
+@supports selector(::-webkit-scrollbar) {
+  .nextra-scrollbar {
+    scrollbar-width: auto !important;
+    scrollbar-color: auto !important;
+  }
 }
 
-.nextra-sidebar-container::-webkit-scrollbar {
+.nextra-scrollbar::-webkit-scrollbar {
   width: 6px !important;
+  height: 6px !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-track {
+.nextra-scrollbar::-webkit-scrollbar-track {
   background: transparent !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2) !important;
+.nextra-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3) !important;
+  border: 0 !important;
   border-radius: 3px !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
+.nextra-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5) !important;
 }
 
 /* Enhanced Footer Styles */
