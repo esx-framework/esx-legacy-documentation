@@ -157,6 +157,29 @@ html.light .nextra-nav-container {
     min-height: 0 !important;
     height: auto !important;
   }
+
+  /* Collapsed (md:_w-20): only the buttons are left, so no empty full-height card */
+  .nextra-sidebar-container[class~="md:_w-20"] {
+    height: auto !important;
+  }
+
+  /* The emptied menu keeps Nextra's fixed height. Not display: none, Nextra measures
+     the menu's width while collapsing and would reopen it at 0px. */
+  .nextra-sidebar-container[class~="md:_w-20"] > div:not(.nextra-sidebar-footer) {
+    flex: 0 0 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .nextra-sidebar-container[class~="md:_w-20"] .nextra-sidebar-footer {
+    flex-direction: column !important;
+    border-top: 0 !important;
+    border-radius: 16px !important;
+    padding: 0.75rem 0 !important;
+  }
   
   /* Light theme sidebar - Better contrast */
   html[data-theme="light"] .nextra-sidebar-container,
