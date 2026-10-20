@@ -37,6 +37,26 @@ body {
   padding-top: 70px !important; /* Retour à l'espacement normal */
 }
 
+/* Both logos are rendered, the theme class shows one */
+.esx-logo {
+  display: flex;
+  align-items: center;
+}
+
+.esx-logo img {
+  height: 28px;
+  width: auto;
+}
+
+.esx-logo-dark,
+html.dark .esx-logo-light {
+  display: none !important;
+}
+
+html.dark .esx-logo-dark {
+  display: block !important;
+}
+
 /* Nextra container background harmonization - Desktop cards layout */
 @media (min-width: 769px) {
   .nextra-container {
