@@ -37,6 +37,11 @@ body {
   padding-top: 70px !important; /* Retour à l'espacement normal */
 }
 
+/* Nextra sizes the navbar and its offsets with this; keep it in sync with the 60px bar */
+html:root {
+  --nextra-navbar-height: 60px;
+}
+
 /* Both logos are rendered, the theme class shows one */
 .esx-logo {
   display: flex;
@@ -88,8 +93,7 @@ html.dark .esx-logo-dark {
   left: 0 !important;
   right: 0 !important;
   z-index: 50 !important; /* Réduit pour éviter les conflits avec sidebar */
-  width: 100vw !important;
-  max-width: 100vw !important;
+  /* left/right 0 instead of 100vw: 100vw includes the scrollbar and pushed the bar off-center */
   border-bottom: 1px solid rgba(253, 152, 0, 0.1) !important;
   height: 60px !important; /* Hauteur normale */
 }
