@@ -40,10 +40,12 @@ const config: DocsThemeConfig = {
     content: FeedbackLink,
   },
   gitTimestamp: (props) => <TimeStamp timestamp={props.timestamp} />,
-  i18n: SUPPORTED_LOCALES,
+  // The docs are English only, so both language switchers (navbar and sidebar) are off.
+  // Put these back once SUPPORTED_LOCALES has a second language.
+  // i18n: SUPPORTED_LOCALES,
   logo: ThemedImage,
   navbar: {
-    extraContent: LocaleSwitch,
+    // extraContent: LocaleSwitch,
   },
   project: {
     link: "https://github.com/esx-framework",
