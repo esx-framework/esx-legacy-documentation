@@ -42,6 +42,19 @@ html:root {
   --nextra-navbar-height: 60px;
 }
 
+/* Inter and JetBrains Mono come from next/font in _app.tsx */
+html:root,
+html:root body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html:root code,
+html:root kbd,
+html:root samp,
+html:root pre {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 /* Both logos are rendered, the theme class shows one */
 .esx-logo {
   display: flex;
