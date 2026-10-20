@@ -499,98 +499,15 @@ p._mt-6._leading-7 {
   margin-top: .3rem;
 }
 
-/* Styles for advertisement above breadcrumb */
-.header-ad-container {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 16px !important;
-}
-
-/* Force advertisement above breadcrumb */
-main .header-ad-container {
-  order: -1;
-}
-
+/* Page content is spaced for a flex column, where margins do not collapse */
 main {
   display: flex;
   flex-direction: column;
 }
 
-/* Ensure breadcrumb stays in normal position */
-.nextra-breadcrumb {
-  order: 0;
-}
-
-/* Optimized transitions for ad banner - Fixed positioning */
-#top-ad-banner {
-  opacity: 0;
-  transform: translate3d(0, -10px, 0);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  animation: slideInFromTop 0.4s ease-out forwards;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-  position: relative !important; /* Empêche les éléments flottants */
-  z-index: 10 !important; /* Z-index contrôlé */
-  margin: 0 !important; /* Supprime les marges externes */
-  clear: both !important; /* Empêche les chevauchements */
-}
-
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -20px, 0);
-    max-height: 0;
-    margin-bottom: 0;
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    max-height: 200px;
-    margin-bottom: 16px;
-  }
-}
-
-/* Smooth transition for content when banner appears/disappears */
-main > div:not(#top-ad-banner) {
-  transition: margin-top 0.3s ease-out;
-}
-
-/* Fade out animation */
-#top-ad-banner.fade-out {
-  animation: slideOutToTop 0.3s ease-in forwards;
-}
-
-@keyframes slideOutToTop {
-  from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    max-height: 200px;
-    margin-bottom: 16px;
-  }
-  to {
-    opacity: 0;
-    transform: translate3d(0, -20px, 0);
-    max-height: 0;
-    margin-bottom: 0;
-  }
-}
-
-/* Style for bottom advertisement */
-#bottom-ad-banner {
-  width: 100%;
-  grid-column: 1 / -1 !important;
-  max-width: none !important;
-}
-
 /* Fix for two-column layout */
 .nextra-body-typesetting-article {
   margin-bottom: 0;
-}
-
-/* Ensure bottom ad displays correctly */
-article + #bottom-ad-banner {
-  margin-top: 40px;
 }
 
 /* Hide Nextra default footer */
@@ -599,57 +516,6 @@ footer.dark\:_bg-neutral-900,
 footer[class*="_bg-gray-100"],
 footer[class*="dark:_bg-neutral-900"] {
   display: none !important;
-}
-
-/* Sidebar Problem Fixes - Anti-Ghost Elements */
-/* Empêche les éléments de flotter au-dessus de la sidebar */
-.nextra-container > * {
-  position: relative !important;
-  z-index: initial !important;
-}
-
-/* Force tous les éléments injectés dynamiquement à rester dans le flux normal */
-main *[id*="ad"], 
-main *[class*="ad"], 
-div[id*="banner"],
-div[class*="banner"] {
-  position: static !important;
-  float: none !important;
-  clear: both !important;
-  z-index: auto !important;
-  transform: none !important;
-}
-
-/* Empêche les débordements et les éléments qui sortent de leur conteneur */
-.nextra-body,
-.nextra-container {
-  contain: layout style !important; /* CSS Containment pour isolation */
-  isolation: isolate !important; /* Crée un nouveau contexte de pile */
-}
-
-/* Supprime tous les éléments positionnés absolument ou fixes non nécessaires */
-.nextra-sidebar-container *:not(.nextra-nav-container) {
-  position: static !important;
-}
-
-/* Règles pour empêcher les animations indésirables */
-.nextra-sidebar-container *,
-.nextra-sidebar * {
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Styles pour les éléments de publicité injectés dynamiquement */
-.header-ad-injected {
-  position: relative !important;
-  width: 100% !important;
-  margin: 0 0 16px 0 !important;
-  z-index: 1 !important;
-  clear: both !important;
-  display: block !important;
-  float: none !important;
-  contain: layout !important;
-  isolation: isolate !important;
 }
 
 /* Chrome ignores ::-webkit-scrollbar once scrollbar-width is set and draws arrow buttons instead.
