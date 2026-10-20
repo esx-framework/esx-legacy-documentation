@@ -300,16 +300,38 @@ html.light .nextra-nav-container {
     }
   }
 
-  /* Table of contents */
+  /* Table of contents - a sticky card as high as the sidebar */
   .nextra-toc {
     background: rgba(15, 15, 15, 0.98) !important;
     backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 16px !important;
-    padding: 1.5rem !important;
+    padding: 0 !important;
     margin: 0 0 0 0.5rem !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     flex-shrink: 0 !important;
+    position: sticky !important;
+    top: 70px !important;
+    align-self: flex-start !important;
+    height: calc(100vh - 80px) !important;
+    overflow: hidden !important;
+  }
+
+  .nextra-toc > .nextra-scrollbar {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 1.25rem 1.25rem 0 !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: auto !important; /* the reserved gutter cut the footer short on the right */
+  }
+
+  /* Keep the main card's bottom in line with the sticky cards */
+  article.nextra-content {
+    padding-bottom: 0 !important;
   }
   
   /* Light theme TOC - Gray background */
@@ -327,9 +349,11 @@ html.light .nextra-nav-container {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    margin: 1rem -1.5rem -1.5rem -1.5rem !important;
-    padding: 1rem 1.5rem !important;
-    border-radius: 0 0 16px 16px !important;
+    /* margin-top auto puts it at the card bottom when the list is short */
+    margin: auto -1.25rem 0 !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
   
   /* Light theme TOC footer - same as TOC background */
