@@ -1,4 +1,5 @@
 import { useTranslation } from "src/hooks/useTranslation";
+import { ThemedImage } from "src/components/theme/themed-image";
 
 export function Footer() {
   const t = useTranslation();
@@ -8,12 +9,11 @@ export function Footer() {
       <div className="footer-content">
         {/* Logo and Main Footer Links */}
         <div className="footer-section footer-main">
-          <div className="footer-logo">
-            <img src="/favicon-96x96.png" alt="ESX Framework Logo" />
-            <h4>ESX Legacy</h4>
-          </div>
+          <a className="footer-logo" href="/" aria-label="ESX Framework Docs">
+            <ThemedImage />
+          </a>
           <p className="footer-description">
-            The premier open-source framework for creating immersive FiveM roleplay servers. 
+            The premier open-source framework for creating immersive FiveM roleplay servers.
             Trusted by thousands of servers worldwide.
           </p>
         </div>
@@ -53,9 +53,7 @@ export function Footer() {
         <div className="footer-section">
           <h4>Quick Start</h4>
           <div className="footer-links">
-            <a href="https://docs.yorick.gg/FiveM/Server/Windows/Create-server" target="_blank" rel="noopener noreferrer">
-              Installation Guide
-            </a>
+            <a href="/en/tutorial/install" rel="noopener">Installation Guide</a>
             <a href="/en/esx_addons/esx_policejob" rel="noopener">Police Job System</a>
             <a href="/en/esx_addons/esx_banking" rel="noopener">Banking System</a>
             <a href="/en/esx_addons/esx_vehicleshop" rel="noopener">Vehicle Shop</a>
