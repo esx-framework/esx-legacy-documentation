@@ -386,6 +386,50 @@ local xPlayer = ESX.GetPlayerFromId(playerId)
 xPlayer.removeAccountMoney("bank", 2400, "Dept payoff.")
 ```
 
+### chargeAccount
+This function takes a price from an account, but only when the account covers it. Checking the amount and the balance, guarding the account and removing the money happen in one step inside es_extended. It never throws, not even for an account name or amount that came from the client. Use it whenever a player buys something.
+
+<Callout type="info">
+    Added in ESX Legacy 1.16.4. The money is removed through `removeAccountMoney`, so a 3rd party inventory and the `esx:removeAccountMoney` event with your reason work as usual.
+</Callout>
+
+**Arguments**
+- accountName: `string`
+  - The account to charge, e.g. `"money"` or `"bank"`.
+- amount: `number`
+  - The price, a whole number from 1 up. Fractions are refused on every account.
+- reason?: `string` (Default: `"Unknown"`)
+  - The reason why the money was taken, passed on to `removeAccountMoney`.
+
+**Returns**
+- charged: `boolean`
+  - `true` when the money was taken.
+- failure?: `string`
+  - Why nothing was taken, only set when `charged` is `false`.
+
+| failure | |
+|---|---|
+| `"invalid_account"` | The player has no account with that name |
+| `"invalid_amount"` | The amount is not a whole number from 1 up |
+| `"insufficient_funds"` | The account holds less than the amount |
+| `"session_closing"` | The player is being dropped and saved |
+| `"failed"` | The stored balance is broken, or the inventory refused the removal |
+
+<Callout type="warning">
+    Take the price from your server's data, never from the client, and check the account against the ones your shop accepts: `chargeAccount` only refuses accounts the player does not have. Through `ESX.Player(source)` a player who left in the meantime returns nothing at all, so treat anything but `true` as not charged.
+</Callout>
+
+**Example**
+```lua
+local xPlayer = ESX.GetPlayerFromId(playerId)
+
+local charged, failure = xPlayer.chargeAccount("bank", 2400, "Vehicle repair")
+if not charged then
+    print(("Repair not paid: %s"):format(failure))
+    return
+end
+```
+
 ### togglePaycheck
 This function will toggle the player's paycheck.
 
