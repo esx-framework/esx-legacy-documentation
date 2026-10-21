@@ -37,6 +37,44 @@ body {
   padding-top: 70px !important; /* Retour à l'espacement normal */
 }
 
+/* Nextra sizes the navbar and its offsets with this; keep it in sync with the 60px bar */
+html:root {
+  --nextra-navbar-height: 60px;
+}
+
+/* Inter and JetBrains Mono come from next/font in _app.tsx */
+html:root,
+html:root body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html:root code,
+html:root kbd,
+html:root samp,
+html:root pre {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Both logos are rendered, the theme class shows one */
+.esx-logo {
+  display: flex;
+  align-items: center;
+}
+
+.esx-logo img {
+  height: 28px;
+  width: auto;
+}
+
+.esx-logo-dark,
+html.dark .esx-logo-light {
+  display: none !important;
+}
+
+html.dark .esx-logo-dark {
+  display: block !important;
+}
+
 /* Nextra container background harmonization - Desktop cards layout */
 @media (min-width: 769px) {
   .nextra-container {
@@ -68,8 +106,7 @@ body {
   left: 0 !important;
   right: 0 !important;
   z-index: 50 !important; /* Réduit pour éviter les conflits avec sidebar */
-  width: 100vw !important;
-  max-width: 100vw !important;
+  /* left/right 0 instead of 100vw: 100vw includes the scrollbar and pushed the bar off-center */
   border-bottom: 1px solid rgba(253, 152, 0, 0.1) !important;
   height: 60px !important; /* Hauteur normale */
 }
@@ -106,13 +143,42 @@ html.light .nextra-nav-container {
     border-radius: 16px !important;
     margin: 0 0.5rem 0 0 !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     flex-shrink: 0 !important;
     position: sticky !important;
     top: 70px !important;
     height: calc(100vh - 80px) !important;
     max-height: calc(100vh - 80px) !important;
+  }
+
+  /* Only the link list scrolls, the footer stays at the bottom of the card */
+  .nextra-sidebar-container > .nextra-scrollbar {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* Collapsed (md:_w-20): only the buttons are left, so no empty full-height card */
+  .nextra-sidebar-container[class~="md:_w-20"] {
+    height: auto !important;
+  }
+
+  /* The emptied menu keeps Nextra's fixed height. Not display: none, Nextra measures
+     the menu's width while collapsing and would reopen it at 0px. */
+  .nextra-sidebar-container[class~="md:_w-20"] > div:not(.nextra-sidebar-footer) {
+    flex: 0 0 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .nextra-sidebar-container[class~="md:_w-20"] .nextra-sidebar-footer {
+    flex-direction: column !important;
+    border-top: 0 !important;
+    border-radius: 16px !important;
+    padding: 0.75rem 0 !important;
   }
   
   /* Light theme sidebar - Better contrast */
@@ -157,18 +223,6 @@ html.light .nextra-nav-container {
     -webkit-mask-image: none !important;
   }
   
-  /* Ensure clean scrollbar */
-  .nextra-sidebar-container::-webkit-scrollbar {
-    width: 6px !important;
-  }
-  .nextra-sidebar-container::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
-  .nextra-sidebar-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border-radius: 3px !important;
-  }
-
 /* Clean reset - moins agressif */
 .nextra-sidebar-container * {
   box-sizing: border-box !important;
@@ -194,10 +248,11 @@ html.light .nextra-nav-container {
 @media (min-width: 769px) {
   .nextra-sidebar-footer {
     background: rgba(15, 15, 15, 0.9) !important;
-    margin: 1rem -1.5rem 0 -1.5rem !important;
-    padding: 1rem 1.5rem !important;
+    margin: 0 !important;
+    padding: 0.75rem 1rem !important;
     border-radius: 0 0 16px 16px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
   }
   
   /* Light theme sidebar footer */
@@ -281,16 +336,38 @@ html.light .nextra-nav-container {
     }
   }
 
-  /* Table of contents */
+  /* Table of contents - a sticky card as high as the sidebar */
   .nextra-toc {
     background: rgba(15, 15, 15, 0.98) !important;
     backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 16px !important;
-    padding: 1.5rem !important;
+    padding: 0 !important;
     margin: 0 0 0 0.5rem !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     flex-shrink: 0 !important;
+    position: sticky !important;
+    top: 70px !important;
+    align-self: flex-start !important;
+    height: calc(100vh - 80px) !important;
+    overflow: hidden !important;
+  }
+
+  .nextra-toc > .nextra-scrollbar {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 1.25rem 1.25rem 0 !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: auto !important; /* the reserved gutter cut the footer short on the right */
+  }
+
+  /* Keep the main card's bottom in line with the sticky cards */
+  article.nextra-content {
+    padding-bottom: 0 !important;
   }
   
   /* Light theme TOC - Gray background */
@@ -308,9 +385,11 @@ html.light .nextra-nav-container {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-    margin: 1rem -1.5rem -1.5rem -1.5rem !important;
-    padding: 1rem 1.5rem !important;
-    border-radius: 0 0 16px 16px !important;
+    /* margin-top auto puts it at the card bottom when the list is short */
+    margin: auto -1.25rem 0 !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
   
   /* Light theme TOC footer - same as TOC background */
@@ -443,98 +522,15 @@ p._mt-6._leading-7 {
   margin-top: .3rem;
 }
 
-/* Styles for advertisement above breadcrumb */
-.header-ad-container {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 16px !important;
-}
-
-/* Force advertisement above breadcrumb */
-main .header-ad-container {
-  order: -1;
-}
-
+/* Page content is spaced for a flex column, where margins do not collapse */
 main {
   display: flex;
   flex-direction: column;
 }
 
-/* Ensure breadcrumb stays in normal position */
-.nextra-breadcrumb {
-  order: 0;
-}
-
-/* Optimized transitions for ad banner - Fixed positioning */
-#top-ad-banner {
-  opacity: 0;
-  transform: translate3d(0, -10px, 0);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  animation: slideInFromTop 0.4s ease-out forwards;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-  perspective: 1000px;
-  position: relative !important; /* Empêche les éléments flottants */
-  z-index: 10 !important; /* Z-index contrôlé */
-  margin: 0 !important; /* Supprime les marges externes */
-  clear: both !important; /* Empêche les chevauchements */
-}
-
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -20px, 0);
-    max-height: 0;
-    margin-bottom: 0;
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    max-height: 200px;
-    margin-bottom: 16px;
-  }
-}
-
-/* Smooth transition for content when banner appears/disappears */
-main > div:not(#top-ad-banner) {
-  transition: margin-top 0.3s ease-out;
-}
-
-/* Fade out animation */
-#top-ad-banner.fade-out {
-  animation: slideOutToTop 0.3s ease-in forwards;
-}
-
-@keyframes slideOutToTop {
-  from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    max-height: 200px;
-    margin-bottom: 16px;
-  }
-  to {
-    opacity: 0;
-    transform: translate3d(0, -20px, 0);
-    max-height: 0;
-    margin-bottom: 0;
-  }
-}
-
-/* Style for bottom advertisement */
-#bottom-ad-banner {
-  width: 100%;
-  grid-column: 1 / -1 !important;
-  max-width: none !important;
-}
-
 /* Fix for two-column layout */
 .nextra-body-typesetting-article {
   margin-bottom: 0;
-}
-
-/* Ensure bottom ad displays correctly */
-article + #bottom-ad-banner {
-  margin-top: 40px;
 }
 
 /* Hide Nextra default footer */
@@ -545,442 +541,176 @@ footer[class*="dark:_bg-neutral-900"] {
   display: none !important;
 }
 
-/* Sidebar Problem Fixes - Anti-Ghost Elements */
-/* Empêche les éléments de flotter au-dessus de la sidebar */
-.nextra-container > * {
-  position: relative !important;
-  z-index: initial !important;
+/* Chrome ignores ::-webkit-scrollbar once scrollbar-width is set and draws arrow buttons instead.
+   Firefox has no ::-webkit-scrollbar and keeps Nextra's thin scrollbar. */
+@supports selector(::-webkit-scrollbar) {
+  .nextra-scrollbar {
+    scrollbar-width: auto !important;
+    scrollbar-color: auto !important;
+  }
 }
 
-/* Force tous les éléments injectés dynamiquement à rester dans le flux normal */
-main *[id*="ad"], 
-main *[class*="ad"], 
-div[id*="banner"],
-div[class*="banner"] {
-  position: static !important;
-  float: none !important;
-  clear: both !important;
-  z-index: auto !important;
-  transform: none !important;
-}
-
-/* Empêche les débordements et les éléments qui sortent de leur conteneur */
-.nextra-body,
-.nextra-container {
-  contain: layout style !important; /* CSS Containment pour isolation */
-  isolation: isolate !important; /* Crée un nouveau contexte de pile */
-}
-
-/* Supprime tous les éléments positionnés absolument ou fixes non nécessaires */
-.nextra-sidebar-container *:not(.nextra-nav-container) {
-  position: static !important;
-}
-
-/* Règles pour empêcher les animations indésirables */
-.nextra-sidebar-container *,
-.nextra-sidebar * {
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Styles pour les éléments de publicité injectés dynamiquement */
-.header-ad-injected {
-  position: relative !important;
-  width: 100% !important;
-  margin: 0 0 16px 0 !important;
-  z-index: 1 !important;
-  clear: both !important;
-  display: block !important;
-  float: none !important;
-  contain: layout !important;
-  isolation: isolate !important;
-}
-
-/* Force le scrolling propre de la sidebar */
-.nextra-sidebar-container {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent !important;
-}
-
-.nextra-sidebar-container::-webkit-scrollbar {
+.nextra-scrollbar::-webkit-scrollbar {
   width: 6px !important;
+  height: 6px !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-track {
+.nextra-scrollbar::-webkit-scrollbar-track {
   background: transparent !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2) !important;
+.nextra-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3) !important;
+  border: 0 !important;
   border-radius: 3px !important;
 }
 
-.nextra-sidebar-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
+.nextra-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5) !important;
 }
 
-/* Enhanced Footer Styles */
+/* Footer - colors per theme, layout shared */
 .esx-footer {
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0d0d0d 100%) !important;
-  border-top: 1px solid rgba(253, 152, 0, 0.2);
-  margin-top: 1.5rem;
-  padding: 3rem 0 0;
-  color: #e2e8f0;
-  position: relative;
-  overflow: hidden;
+  --footer-bg: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0d0d0d 100%);
+  --footer-bottom-bg: rgba(0, 0, 0, 0.25);
+  --footer-border: rgba(255, 255, 255, 0.08);
+  --footer-heading: #fafafa;
+  --footer-text: #a1a1aa;
+  --footer-muted: #71717a;
 }
 
-/* Light theme footer - Darker contrast */
 html[data-theme="light"] .esx-footer,
 html.light .esx-footer {
-  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 50%, #ced4da 100%) !important;
-  border-top: 1px solid rgba(253, 152, 0, 0.3) !important;
-  color: #495057 !important;
-}
-
-/* Light theme footer section headings */
-html[data-theme="light"] .footer-section h4,
-html.light .footer-section h4 {
-  color: #212529 !important;
-}
-
-/* Light theme footer links */
-html[data-theme="light"] .footer-links a,
-html.light .footer-links a {
-  color: #6c757d !important;
-}
-
-html[data-theme="light"] .footer-links a:hover,
-html.light .footer-links a:hover {
-  color: #fd9800 !important;
-}
-
-/* Light theme footer description */
-html[data-theme="light"] .footer-description,
-html.light .footer-description {
-  color: #6c757d !important;
+  --footer-bg: linear-gradient(135deg, #e9ecef 0%, #dee2e6 50%, #ced4da 100%);
+  --footer-bottom-bg: rgba(0, 0, 0, 0.04);
+  --footer-border: rgba(0, 0, 0, 0.1);
+  --footer-heading: #212529;
+  --footer-text: #495057;
+  --footer-muted: #6c757d;
 }
 
 @media (prefers-color-scheme: light) {
   html:not([data-theme="dark"]):not(.dark) .esx-footer {
-    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 50%, #ced4da 100%) !important;
-    border-top: 1px solid rgba(253, 152, 0, 0.3) !important;
-    color: #495057 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-section h4 {
-    color: #212529 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-links a {
-    color: #6c757d !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-links a:hover {
-    color: #fd9800 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-description {
-    color: #6c757d !important;
+    --footer-bg: linear-gradient(135deg, #e9ecef 0%, #dee2e6 50%, #ced4da 100%);
+    --footer-bottom-bg: rgba(0, 0, 0, 0.04);
+    --footer-border: rgba(0, 0, 0, 0.1);
+    --footer-heading: #212529;
+    --footer-text: #495057;
+    --footer-muted: #6c757d;
   }
 }
 
-.esx-footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #fd9800, transparent);
-  animation: shimmer 3s ease-in-out infinite;
+.esx-footer {
+  background: var(--footer-bg) !important;
+  border-top: 1px solid var(--footer-border);
+  margin-top: 1.5rem;
+  padding-top: 3rem;
+  color: var(--footer-text);
 }
 
-@keyframes shimmer {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+/* Same width and gutter as the navbar, so the two logos line up */
+.footer-content,
+.footer-bottom-content {
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
 .footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 2rem 3rem;
+  padding-bottom: 3rem;
 }
 
 .footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: rgba(253, 152, 0, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(253, 152, 0, 0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-/* Light theme footer logo - Better contrast */
-html[data-theme="light"] .footer-logo,
-html.light .footer-logo {
-  background: rgba(253, 152, 0, 0.15) !important;
-  border: 1px solid rgba(253, 152, 0, 0.4) !important;
-}
-
-html[data-theme="light"] .footer-logo h4,
-html.light .footer-logo h4 {
-  color: #212529 !important;
-}
-
-/* Light theme footer bottom text colors */
-html[data-theme="light"] .footer-copyright,
-html.light .footer-copyright {
-  color: #495057 !important;
-}
-
-html[data-theme="light"] .footer-copyright a,
-html.light .footer-copyright a {
-  color: #6c757d !important;
-}
-
-html[data-theme="light"] .footer-copyright a:hover,
-html.light .footer-copyright a:hover {
-  color: #fd9800 !important;
-}
-
-html[data-theme="light"] .footer-meta,
-html.light .footer-meta {
-  color: #6c757d !important;
-}
-
-html[data-theme="light"] .footer-meta a,
-html.light .footer-meta a {
-  color: #6c757d !important;
-}
-
-html[data-theme="light"] .footer-meta a:hover,
-html.light .footer-meta a:hover {
-  color: #fd9800 !important;
-}
-
-@media (prefers-color-scheme: light) {
-  html:not([data-theme="dark"]):not(.dark) .footer-logo {
-    background: rgba(253, 152, 0, 0.15) !important;
-    border: 1px solid rgba(253, 152, 0, 0.4) !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-logo h4 {
-    color: #212529 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-copyright {
-    color: #495057 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-copyright a {
-    color: #6c757d !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-copyright a:hover {
-    color: #fd9800 !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-meta {
-    color: #6c757d !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-meta a {
-    color: #6c757d !important;
-  }
-  
-  html:not([data-theme="dark"]):not(.dark) .footer-meta a:hover {
-    color: #fd9800 !important;
-  }
-}
-
-.footer-logo:hover {
-  background: rgba(253, 152, 0, 0.08);
-  border-color: rgba(253, 152, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-.footer-logo img {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(253, 152, 0, 0.2);
+  display: inline-flex;
+  margin-bottom: 1rem;
 }
 
 .footer-description {
-  color: #cbd5e1;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
-  max-width: 280px;
+  max-width: 22rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--footer-text);
 }
 
 .footer-section h4 {
-  color: #ffffff;
-  font-size: 1.1rem;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  position: relative;
-  padding-bottom: 0.75rem;
-  letter-spacing: 0.5px;
-}
-
-
-.footer-main h4 {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--footer-heading);
 }
 
 .footer-links {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.625rem;
 }
 
 .footer-links a {
-  color: #a1a1aa;
+  font-size: 0.875rem;
+  color: var(--footer-text);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  padding: 0.5rem 0;
-  border-left: 2px solid transparent;
-  padding-left: 0.75rem;
-  border-radius: 0 6px 6px 0;
+  transition: color 0.15s ease;
 }
 
-.footer-links a::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(45deg, #fd9800, #ffb347);
-  transform: scaleY(0);
-  transition: transform 0.3s ease;
-  border-radius: 2px;
-}
-
-.footer-links a:hover {
-  color: #ffffff;
-  background: rgba(253, 152, 0, 0.05);
-  transform: translateX(4px);
-}
-
-.footer-links a:hover::before {
-  transform: scaleY(1);
+.footer-links a:hover,
+.footer-copyright a:hover,
+.footer-meta a:hover {
+  color: #fd9800;
 }
 
 .footer-bottom {
-  background: #1f1f1f;
-  backdrop-filter: none;
-  margin-top: 1.5rem;
-  padding: 0.75rem 0;
-  position: relative;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Light theme footer bottom - Darker */
-html[data-theme="light"] .footer-bottom,
-html.light .footer-bottom {
-  background: #ced4da !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.15) !important;
-}
-
-@media (prefers-color-scheme: light) {
-  html:not([data-theme="dark"]):not(.dark) .footer-bottom {
-    background: #ced4da !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.15) !important;
-  }
+  background: var(--footer-bottom-bg);
+  border-top: 1px solid var(--footer-border);
 }
 
 .footer-bottom-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  text-align: center;
+  gap: 0.5rem 1.5rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  font-size: 0.8125rem;
+  color: var(--footer-muted);
 }
 
-.footer-copyright a {
-  color: #94a3b8;
+.footer-copyright a,
+.footer-meta a {
+  color: inherit;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.footer-copyright a:hover {
-  color: #fd9800;
+  transition: color 0.15s ease;
 }
 
 .footer-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  font-size: 0.85rem;
-  color: #64748b;
+  flex-wrap: wrap;
 }
 
-.footer-meta span {
-  white-space: nowrap;
-}
-
-.footer-meta a {
-  color: #94a3b8;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.footer-meta a:hover {
-  color: #fd9800;
-}
-
-/* Responsive Footer */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .footer-content {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 2rem;
-    padding: 0 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  
-  .footer-bottom-content {
-    padding: 0 1rem;
-  }
-  
-  .footer-meta {
-    flex-direction: column;
-    gap: 0.5rem;
+
+  .footer-main {
+    grid-column: 1 / -1;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .esx-footer {
-    padding: 2rem 0 1rem;
+    padding-top: 2rem;
   }
-  
+
   .footer-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .footer-section h4 {
-    font-size: 1.1rem;
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 2rem;
   }
 }
