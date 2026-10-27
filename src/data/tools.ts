@@ -20,4 +20,9 @@ export const TOOLS = [
         url: "https://smartmerge.de/",
         text: "Smart Merge V"
     },
+    {
+        icon: "https://rpscripts.net/apple-icon.png",
+        url: "https://rpscripts.net/tools/fivem-backdoor-scanner/",
+        text: "FiveM Backdoor Scanner"
+    },
 ]
