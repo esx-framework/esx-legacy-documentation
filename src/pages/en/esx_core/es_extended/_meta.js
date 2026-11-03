@@ -5,4 +5,5 @@ export default {
   server: "Server",
   shared: "Shared",
   playerdata: "PlayerData",
+  locales: "Locales",
 };

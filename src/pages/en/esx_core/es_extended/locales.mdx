@@ -1,0 +1,235 @@
+import { Callout, FileTree } from 'nextra/components';
+
+# Locales
+
+es_extended ships a small translation system that is used by esx and can also be used by third party scripts. 
+
+It works by loading the shared script `@es_extended/locale.lua` in your fxmanifest.lua and declaring the translation files in the `locales/` folder. 
+
+<Callout type="warning">
+  Previously, locale files were loaded as scripts. This method is now deprecated, and we recommend switching to the new approach.
+
+  See [Migrating an older resource over](#migrating-an-older-resource-over) for instructions on migrating from the old method.
+</Callout>
+
+## Choosing the language
+Set the language in your `server.cfg` using `setr`.
+
+```cfg
+setr esx:locale "de"
+```
+
+Every resource that uses the locale system follows it. When it is not set, es_extended falls back to language set inside txAdmin and then to `en`(English).
+
+## Setting up a resource
+
+### Folder structure
+<FileTree>
+  <FileTree.Folder name="my_script" defaultOpen>
+    <FileTree.Folder name="client" defaultOpen>
+      <FileTree.File name="main.lua" />
+    </FileTree.Folder>
+    <FileTree.Folder name="locales" defaultOpen>
+      <FileTree.File name="de.lua" />
+      <FileTree.File name="en.lua" />
+    </FileTree.Folder>
+    <FileTree.Folder name="server" defaultOpen>
+      <FileTree.File name="main.lua" />
+    </FileTree.Folder>
+    <FileTree.File name="config.lua" />
+    <FileTree.File name="fxmanifest.lua" />
+  </FileTree.Folder>
+</FileTree>
+
+Name each file using its language code, e.g.: `en.lua`, `de.lua`, `zh-cn.lua` and so on. The name must match the value of `esx:locale`. 
+
+Always include an `en.lua`, it is the fallback for everything else.
+
+If you're unsure which language code to use, refer to the [ISO639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) language codes. Use ISO 639-1 codes whenever available. If a language does not have an ISO 639-1 code, use its ISO 639-2 code instead.
+For regional variants, append the appropriate ISO [3166-1](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code, separated by a hyphen (e.g. en-gb.lua, zh-cn.lua). Use lowercase codes to keep file names consistent.
+
+### fxmanifest.lua
+Load `locale.lua` as a shared script and list the locale files under `files`. Do not add them to `shared_scripts`, `client_scripts` or `server_scripts`.
+
+```lua
+fx_version 'cerulean'
+game 'gta5'
+lua54 'yes'
+
+shared_scripts {
+    '@es_extended/imports.lua',
+    '@es_extended/locale.lua',
+    'config.lua',
+}
+
+client_scripts {
+    'client/*.lua',
+}
+
+server_scripts {
+    'server/*.lua',
+}
+
+files {
+    'locales/*.lua', -- Read on demand, never run as a script
+}
+
+dependencies {
+    'es_extended',
+}
+```
+
+Using `files` makes the locale available to clients without executing them as scripts. The server can read every file in the resource folder anyway.
+
+### config.lua
+The translation system(locale) reads the set locale from your resource's own `Config.Locale`, so the global `Config` table and `Config.Locale` have to exist before the first translation.
+
+```lua
+Config = {}
+Config.Locale = GetConvar('esx:locale', 'en')
+```
+
+This is what esx_inventory, esx_garage and esx_multicharacter do. `ESX.GetConfig('Locale')` works as well and returns the language es_extended uses, which also falls back to the txAdmin locale when `esx:locale` is not set(Can only be used when also using the shared script `@es_extended/imports.lua`).
+
+<Callout type="warning">
+  Without a `Config` table every call fails with `attempt to index a nil value (global 'Config')`. Without `Config.Locale` it fails with `table index is nil`.
+</Callout>
+
+### Locale files
+Each file returns one table. The keys are the same in every language, the values are the texts. Placeholders follow Lua's `string.format`: `%s` for any value, `%d` for whole numbers, `%.2f` for decimals and `%%` for a literal percent sign.
+
+**locales/en.lua**
+```lua
+return {
+    ["shop_open"] = "Press ~INPUT_CONTEXT~ to open the shop",
+    ["bought_item"] = "You bought %sx %s for $%s",
+    ["not_enough_money"] = "you are missing $%s",
+}
+```
+
+**locales/de.lua**
+```lua
+return {
+    ["shop_open"] = "Drücke ~INPUT_CONTEXT~, um den Laden zu öffnen",
+    ["bought_item"] = "Du hast %sx %s für $%s gekauft",
+    ["not_enough_money"] = "dir fehlen $%s",
+}
+```
+
+The file starts with `return {`, not with `Locales['de'] = {`. That is what lets the loader read the file on demand.
+
+### Using the texts
+`Translate` and `TranslateCap` are globals in every script of the resource, on the server and on the client when the locale script is used.
+
+```lua
+-- client/main.lua
+ESX.TextUI(Translate('shop_open'))
+```
+
+```lua
+-- server/main.lua
+xPlayer.showNotification(Translate('bought_item', count, label, price))
+xPlayer.showNotification(TranslateCap('not_enough_money', missing)) -- "You are missing $250"
+```
+
+## Why this way
+The older pattern, still found in many resources, writes each file as `Locales['de'] = { ... }` and loads every file as a script. Every language then runs on start and stays in memory as long as the resource runs. A shared script runs on the server and again on every player's client, and each resource has its own Lua runtime, so this repeats for every resource.
+
+With on-demand loading, the first `Translate` call reads `locales/<code>.lua` for the active language only. The other languages are never loaded.
+
+Measured with the locale files shipped in ESX 1.17.0 (stock Lua 5.4, the numbers inside FiveM differ slightly):
+
+| Resource | Languages | One language | All languages | Saved |
+|---|---|---|---|---|
+| es_extended | 18 | 49 KB | 497 KB | 90% |
+| esx_inventory | 19 | 8 KB | 86 KB | 91% |
+| esx_identity | 16 | 8 KB | 69 KB | 89% |
+
+That is per Lua runtime: once on the server and once on every connected client, for every resource. The more texts and the more languages a resource ships, the more it saves.
+
+<Callout type="info">
+  Clients still download every file listed under `files`. The saving is in memory, not in download size.
+</Callout>
+
+## Functions
+
+### Translate
+Returns the text for `key` in the active language, formatted with the extra arguments.
+
+**Arguments**
+- key: `string`
+  - The key from the locale file.
+- ...: `any`
+  - Values for the placeholders, in order.
+
+**Returns**
+- text: `string`
+  - The translated text.
+
+**Example**
+```lua
+print(Translate('bought_item', 2, 'Bread', 10)) -- "You bought 2x Bread for $10"
+```
+
+<Callout type="warning">
+  Passing fewer arguments than the text has placeholders throws an error, for example `Translation [en][bought_item] in resource [my_script] failed with 0 argument(s)`. Extra arguments are ignored.
+</Callout>
+
+### TranslateCap
+Same as `Translate`, but the first letter of the result is uppercased. Only a lowercase ASCII letter is changed, so a text starting with `ü`, `é` or a non-Latin character comes back unchanged.
+
+**Arguments**
+- key: `string`
+  - The key from the locale file.
+- ...: `any`
+  - Values for the placeholders, in order.
+
+**Returns**
+- text: `string`
+  - The translated text with an uppercase first letter.
+
+**Example**
+```lua
+print(TranslateCap('not_enough_money', 250)) -- "You are missing $250"
+```
+
+### Aliases
+`_` is an alias for `Translate` and `_U` an alias for `TranslateCap`. They are kept for older scripts. Use the full names in new code. This should not be used preferably anymore.
+
+
+## Translation inside the NUI
+Translate in Lua and send the finished texts to your UI, instead of keeping a second set of translations in JavaScript.
+
+```lua
+local function sendLocale()
+    SendNUIMessage({
+        action = 'locale',
+        strings = {
+            title = Translate('ui_title'),
+            confirm = Translate('ui_confirm'),
+            cancel = Translate('ui_cancel'),
+        },
+    })
+end
+```
+
+es_extended still ships a `locale.js` with a `_U` function for HTML pages, but this is not used anymore.
+
+## Migrating an older resource over
+1. In every file under `locales/`, replace `Locales['de'] = {` with `return {`.
+2. In `fxmanifest.lua`, remove `'locales/*.lua'` from `shared_scripts`, `client_scripts` and `server_scripts`, and add it to `files`.
+3. Make sure `config.lua` sets `Config.Locale` and is loaded in `shared_scripts`.
+4. Look for code that reads the `Locales` table directly, such as `Locales[Config.Locale].title`. The table stays empty until the first `Translate` call, so replace those reads with `Translate('title')`.
+
+```diff
+ shared_scripts {
+     '@es_extended/imports.lua',
+     '@es_extended/locale.lua',
+-    'locales/*.lua',
+     'config.lua',
+ }
++
++files {
++    'locales/*.lua',
++}
+```
